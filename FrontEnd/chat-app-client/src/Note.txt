@@ -1,0 +1,4 @@
+<Heading></Heading>   => h2
+<Text></Text>      => p
+<Container></Container>   => will center the content(By default it is a div tag)
+<Container as="section"></Container> (by this way we can make a section tag)
