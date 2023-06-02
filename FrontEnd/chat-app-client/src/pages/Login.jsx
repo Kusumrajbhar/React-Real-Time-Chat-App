@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import * as Yup from "yup";
+import axios from 'axios';
 import {
   Box,
   Button,
@@ -14,6 +15,8 @@ import {
 } from "@chakra-ui/react";
 import { Form, FormikProvider, useFormik } from "formik";
 import registerLogo from "../assets/logo.svg";
+import { useNavigate } from "react-router-dom";
+import { loginUrl } from "../utils/APIRoutes";
 
 const inputStyle = {
   backgroundColor: "transparent",
@@ -24,6 +27,9 @@ const inputStyle = {
 
 function Login() {
   const toast = useToast();
+  const navigate = useNavigate();
+
+  const [userData, setUserData] = useState();
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().required("Email is required"),
@@ -35,26 +41,58 @@ function Login() {
       ),
   });
 
+  // const setUser = useCallback(() => {
+  // setUserData(localStorage.getItem('chat-app'))
+  // }, [userData]);
+
+  useEffect(() => {
+  // setUserData(localStorage.getItem('chat-app'))
+   if(localStorage.getItem('chat-app')){
+    navigate('/')
+   }
+   }
+  ,[]);
+
   const formik = useFormik({
     initialValues: {
-      userName: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
-    validationSchema: LoginSchema,
+  //  validationSchema: LoginSchema,
     onSubmit: () => {
-      alert("submitted");
-      // if (errors?.password){
-      //    console.log(errors.password, "toast")
-      //    toast({
-      //        title: 'Login',
-      //        description: "We've created your account for you.",
-      //        status: 'success',
-      //        duration: 9000,
-      //        isClosable: true,
-      //      })
-      // }
+      const userData = {email: values?.email, password: values?.password}
+      axios.post(`${loginUrl}`, userData)
+      .then((res) => {
+        console.log('res in login', res)
+        if(res?.data?.status == 400){
+          toast({
+            title: res?.data?.msg,
+            position: 'top-right',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          })
+        } else {
+          if(res?.data?.status == 200){
+              toast({
+              title: res?.data?.msg,
+              position: 'top-right',
+              status: 'success',
+              duration: 5000,
+              isClosable: true,
+            })
+          localStorage.setItem('chat-app', JSON.stringify(res?.data?.data))
+          // setUser(); 
+          // if(userData?.email){
+          //   navigate('/')
+          // }
+        } 
+        }
+      })
+      .catch((err) => {
+      console.log('err', err)
+      })
+      
     },
   });
   console.log("formik", formik);
@@ -111,7 +149,16 @@ function Login() {
             <Button size="lg" color="#000000" mt={8} type="submit">
               Submit
             </Button>
-            <Box mt={4} style={{ display: "flex" }}></Box>
+            <Box mt={4} style={{ display: "flex" }}>
+              <Text mr={4}>Not Registered?</Text>
+              <Text
+                color="#4e0eff"
+                cursor="pointer"
+                onClick={() => navigate("/register")}
+              >
+                Register
+              </Text>
+            </Box>
           </Form>
         </Flex>
       </FormikProvider>

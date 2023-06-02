@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import * as Yup from "yup";
 import axios from 'axios';
 import {
@@ -12,9 +12,10 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { Form, FormikProvider, useFormik } from "formik";
+import {ToastContainer, toast} from "react-toastify";
 import registerLogo from "../assets/logo.svg";
 import { useNavigate } from "react-router-dom";
-import { apiBaseUrl } from "../utils/baseUrl";
+import { apiBaseUrl, registerUrl } from "../utils/APIRoutes";
 
 const inputStyle = {
   backgroundColor: "transparent",
@@ -43,7 +44,14 @@ function Register() {
       .oneOf([Yup.ref("password"), null], "Password must match"),
   });
 
-  console.log('process.env.apiBase', process.env.REACT_APP_apiBase)
+  const toastOptions = {
+    position: "top-right",
+    autoClose: 8000,
+    pauseOnHover: true,
+    draggable: true,
+    theme: "dark",
+  };
+
   const formik = useFormik({
     initialValues: {
       userName: "",
@@ -53,12 +61,22 @@ function Register() {
     },
   //  validationSchema: RegisterSchema,
     onSubmit:  async () => {
-    const userData = {userName:values?.userName, email: values?.email }
-    await axios.post(`${apiBaseUrl}/register`, userData)
-    .then((res) => console.log('res', res))
+    const userData = {userName:values?.userName, email: values?.email, password: values?.password }
+    await axios.post(registerUrl, userData)
+    .then((res) => {
+      //  alert("submitted");
+      console.log('res', res)
+        if(res?.data?.status == 200){
+            console.log('status:200', res?.data?.status)
+            toast.success('User Registered successfully', toastOptions)
+            navigate("/");
+        } else if(res?.data?.status == 400) {
+            console.log('status:400', res?.data?.status)
+            toast.error(res?.data?.msg, toastOptions)
+
+        }
+    })
     .catch((err) => console.log('err', err));
-      alert("submitted");
-      navigate("/");
     }
 })
 
@@ -164,6 +182,7 @@ function Register() {
           </Form>
         </Flex>
       </FormikProvider>
+      <ToastContainer />
     </Box>
   );
 }
