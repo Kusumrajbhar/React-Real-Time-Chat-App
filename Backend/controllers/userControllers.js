@@ -72,7 +72,7 @@ const setAvatar = async (req, res, next) => {
     const userId = req.params?.id;
     console.log("userId", userId);
     const avatarImages = req.body?.image;
-    const userData = await User.updateOne(
+    await User.updateOne(
       { _id: userId },
       {
         $set: {
@@ -86,6 +86,13 @@ const setAvatar = async (req, res, next) => {
 
     console.log("updatedData", updatedData);
     //It is not returning the json data here, returning empty json object start from here
+    console.log(
+      "res json",
+      res.json({
+        isSet: updatedData.isAvatarImagesSet,
+        image: updatedData.avatarImages,
+      })
+    );
     return res.json({
       isSet: updatedData.isAvatarImagesSet,
       image: updatedData.avatarImages,
